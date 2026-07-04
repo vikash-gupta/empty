@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: Item API
+  description: Generic CRUD API for managing items.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+
+  /v1/items:
+    get:
+      summary: List all items
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: createdAt
+      responses:
+        "200":
+          description: A list of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+
+    post:
+      summary: Create a new item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+      responses:
+        "201":
+          description: Item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/items/{id}:
+    get:
+      summary: Get an item by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Item found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update an item by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemRequest'
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete an item by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "204":
+          description: Item deleted
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "item-123"
+
+  schemas:
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "item-123"
+        name:
+          type: string
+          example: "Sample Item"
+        description:
+          type: string
+          example: "A useful item"
+        status:
+          type: string
+          enum: [active, inactive]
+          example: active
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ItemRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Sample Item"
+        description:
+          type: string
+          example: "A useful item"
+        status:
+          type: string
+          enum: [active, inactive]
+          default: active
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Invalid request payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "name is required"
+            timestamp: "2026-02-19T10:00:00Z"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Item not found"
+            timestamp: "2026-02-19T10:00:00Z"
